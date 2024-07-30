@@ -1,11 +1,10 @@
 import { makeTitledPrettyError, type SimpleLogger, text } from "@lmstudio/lms-common";
 import { terminalSize } from "@lmstudio/lms-isomorphic";
-import { type DownloadedModel } from "@lmstudio/lms-shared-types";
 import {
-  type LLMAccelerationOffload,
-  type LLMLoadModelConfig,
-  type LMStudioClient,
-} from "@lmstudio/sdk";
+  type DownloadedModel,
+  type LLMLlamaAccelerationOffloadRatio,
+} from "@lmstudio/lms-shared-types";
+import { type LLMLoadModelConfig, type LMStudioClient } from "@lmstudio/sdk";
 import chalk from "chalk";
 import { boolean, command, flag, option, optional, positional, string, type Type } from "cmd-ts";
 import fuzzy from "fuzzy";
@@ -18,7 +17,7 @@ import { formatSizeBytes1000 } from "../formatSizeBytes1000";
 import { createLogger, logLevelArgs } from "../logLevel";
 import { ProgressBar } from "../ProgressBar";
 
-const gpuOptionType: Type<string, LLMAccelerationOffload> = {
+const gpuOptionType: Type<string, LLMLlamaAccelerationOffloadRatio> = {
   async from(str) {
     str = str.trim().toLowerCase();
     if (str === "off") {
@@ -122,7 +121,11 @@ export const load = command({
   handler: async args => {
     const { gpu, contextLength, yes, exact, identifier } = args;
     const loadConfig: LLMLoadModelConfig = {
-      gpuOffload: gpu,
+      gpuOffload: {
+        ratio: gpu,
+        mainGpu: 0,
+        tensorSplit: [0],
+      },
       contextLength,
     };
     let { path } = args;
